@@ -18,5 +18,5 @@ secure and efficient data exchange — even under difficult network conditions.
 - 🌐 Human-readable headers (e.g. `#!METHOD GET`, `#!VERSION 1.0`)
 - 🔐 Built-in AES-256 encryption with PBKDF2
 - 📦 Optional compression using Zstandard
-- 📡 Works over any TCP connection (can even be tunneled through Tor)
+- 📡 Works over any TCP connection
 - 🧰 Easy to implement, extend, and debug
