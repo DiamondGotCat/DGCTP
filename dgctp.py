@@ -120,7 +120,7 @@ class FileSender:
         print("[DONE]")
 
 class FileReceiver:
-    def __init__(self, port, save_dir, encrypt=False, password=None):
+    def __init__(self, port, save_dir, encrypt=False, password=None, on_receive=None):
         self.port = port
         self.save_dir = save_dir
         self.encrypt = encrypt
@@ -129,6 +129,9 @@ class FileReceiver:
         self.cipher = None
         self.key = None
         self.iv = None
+        self.last_received_file = None
+        self.last_sender_ip = None
+        self.on_receive = on_receive
 
     async def start_server(self):
         server = await asyncio.start_server(self.handle_client, '0.0.0.0', self.port)
@@ -176,6 +179,10 @@ class FileReceiver:
             encrypt_flag = bool(int(encrypt_flag))
             save_path = os.path.join(self.save_dir, filename)
             decompressor = zstd.ZstdDecompressor() if compress_flag else None
+
+            peer_ip = writer.get_extra_info("peername")[0]
+            self.last_sender_ip = peer_ip
+            self.last_received_file = save_path
 
             if encrypt_flag:
                 # ソルトとIVの受信
@@ -227,6 +234,9 @@ class FileReceiver:
                     print(f"       Actual  : {actual_hash}")
             else:
                 print("[WARN] SHA256 hash not provided in header.")
+
+            if self.on_receive:
+                await self.on_receive(save_path, writer.get_extra_info("peername")[0])
             
         except Exception as e:
             print(f"[ERR ] {e}")
