@@ -59,7 +59,8 @@ class DGCTPInteractiveNode:
             encrypt=False,
             on_receive=self.on_file_received
         )
-        await receiver.start_server()
+        # 非同期タスクとして起動
+        asyncio.create_task(receiver.start_server())
 
     async def send_once(self, target_ip, target_port, path_str):
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmpf:
