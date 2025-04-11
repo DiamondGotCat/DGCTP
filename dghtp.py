@@ -398,7 +398,7 @@ def parse_arguments():
     client_parser.add_argument("--server", type=str, required=True, help="Remote IP Address / Domain")
     client_parser.add_argument("--port", type=int, default=8443, help="Remote Port (Default: 8443)")
     client_parser.add_argument("--method", type=str, choices=["GET", "POST"], default="GET", help="Method (Default: GET)")
-    client_parser.add_argument("--path", type=str, default="/", help="Request File Path (Default: /)")
+    client_parser.add_argument("--path", type=str, default="/index.html", help="Request File Path (Default: /index.html)")
     # GET でダウンロード結果を保存する場合の出力先
     client_parser.add_argument("--output", type=str, help="Path for Save Received File (POST)")
     # POST で送信するファイル
