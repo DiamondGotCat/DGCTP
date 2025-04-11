@@ -3,11 +3,10 @@ import os
 import argparse
 import tempfile
 import shutil
-import time
 
-from dgctp import lib, calculate_sha256
+from dgctp import FileReceiver, lib
 
-PORT = 4321  # デフォルト受信ポート
+PORT = 4321  # デフォルトポート
 RECEIVE_DIR = tempfile.mkdtemp(prefix="dgctp_recv_")
 
 class DGCTPInteractiveNode:
@@ -15,14 +14,12 @@ class DGCTPInteractiveNode:
         self.nofile = nofile
         self.responded_hashes = set()
 
-    async def handle_received_file(self, file_path):
+    async def handle_received_file(self, file_path, sender_ip):
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read().strip()
+            print(f"[RECV] From {sender_ip}: '{content}'")
 
-            print(f"[RECV] From peer: '{content}'")
-
-            # 要求されたファイルを返す（または None）
             if self.nofile:
                 reply = "None"
             else:
@@ -32,50 +29,39 @@ class DGCTPInteractiveNode:
                 else:
                     reply = "[ERR] File not found"
 
-            # 応答ファイル作成
+            # 応答ファイルの作成と送信
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmpf:
                 tmpf.write(reply)
                 reply_path = tmpf.name
 
             await lib(
                 mode='send',
-                target='127.0.0.1',
+                target=sender_ip,
                 port=PORT,
                 file_path=reply_path,
                 compress=False,
                 encrypt=False
             )
-            print("[SEND] Sent reply.")
+            print("[SEND] Sent reply to", sender_ip)
             os.remove(reply_path)
 
         except Exception as e:
             print(f"[ERR ] while responding: {e}")
 
-    async def receive_loop(self):
-        while True:
-            try:
-                await lib(
-                    mode='receive',
-                    port=PORT,
-                    save_dir=RECEIVE_DIR,
-                    encrypt=False
-                )
+    async def on_file_received(self, file_path, sender_ip):
+        await self.handle_received_file(file_path, sender_ip)
+        os.remove(file_path)
 
-                # 最新ファイルを処理
-                files = sorted(
-                    (os.path.join(RECEIVE_DIR, f) for f in os.listdir(RECEIVE_DIR)),
-                    key=os.path.getctime
-                )
-                if files:
-                    latest_file = files[-1]
-                    await self.handle_received_file(latest_file)
-                    os.remove(latest_file)
-            except Exception as e:
-                print(f"[ERR ] Receive loop: {e}")
-                await asyncio.sleep(1)
+    async def receive_loop(self):
+        receiver = FileReceiver(
+            port=PORT,
+            save_dir=RECEIVE_DIR,
+            encrypt=False,
+            on_receive=self.on_file_received
+        )
+        await receiver.start_server()
 
     async def send_once(self, target_ip, target_port, path_str):
-        # 送信用に一時ファイル作成
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmpf:
             tmpf.write(path_str)
             send_path = tmpf.name
@@ -90,23 +76,16 @@ class DGCTPInteractiveNode:
         )
         os.remove(send_path)
 
-        # 応答を待って受信
-        await lib(
+        latest_file, sender_ip = await lib(
             mode='receive',
             port=PORT,
             save_dir=RECEIVE_DIR,
             encrypt=False
         )
-        files = sorted(
-            (os.path.join(RECEIVE_DIR, f) for f in os.listdir(RECEIVE_DIR)),
-            key=os.path.getctime
-        )
-        if files:
-            reply_file = files[-1]
-            with open(reply_file, 'r', encoding='utf-8', errors='ignore') as f:
-                reply_content = f.read().strip()
-            os.remove(reply_file)
-            print(f"[REPLY] <<< {reply_content}")
+        with open(latest_file, 'r', encoding='utf-8', errors='ignore') as f:
+            reply_content = f.read().strip()
+        os.remove(latest_file)
+        print(f"[REPLY] <<< {reply_content}")
 
     async def input_loop(self):
         print(f"[INFO] Enter commands like: 127.0.0.1[:PORT]/path/to/request.txt")
@@ -118,13 +97,12 @@ class DGCTPInteractiveNode:
                     continue
 
                 address, filepath = user_input.split('/', 1)
-
                 if ':' in address:
                     ip, port_str = address.split(':')
                     port = int(port_str)
                 else:
                     ip = address
-                    port = PORT  # デフォルトポート
+                    port = PORT
 
                 await self.send_once(ip, port, filepath)
             except KeyboardInterrupt:
@@ -141,9 +119,7 @@ async def main():
     args = parser.parse_args()
 
     node = DGCTPInteractiveNode(nofile=args.nofile)
-
     try:
-        # 並列タスク起動：受信 + 入力ループ
         await asyncio.gather(
             node.receive_loop(),
             node.input_loop()
