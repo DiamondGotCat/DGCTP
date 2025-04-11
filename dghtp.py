@@ -400,7 +400,7 @@ def parse_arguments():
     client_parser.add_argument("--method", type=str, choices=["GET", "POST"], default="GET", help="Method (Default: GET)")
     client_parser.add_argument("--path", type=str, default="/index.html", help="Request File Path (Default: /index.html)")
     # GET でダウンロード結果を保存する場合の出力先
-    client_parser.add_argument("--output", type=str, help="Path for Save Received File (POST)")
+    client_parser.add_argument("--output", type=str, help="Path for Save Received File (GET)")
     # POST で送信するファイル
     client_parser.add_argument("--file", type=str, help="Path of Send File (POST)")
     client_parser.add_argument("--encrypt", action="store_true", help="Encryption (Option)")
