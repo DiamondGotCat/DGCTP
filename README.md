@@ -1,3 +1,6 @@
+
+![DGHTP_1024](https://github.com/user-attachments/assets/9a99ea6d-e389-46d0-a492-6f661cf5de6a)
+
 # DGHTP  
 DiamondGotCat Hypertext Transfer Protocol
 
