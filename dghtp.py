@@ -395,7 +395,7 @@ def parse_arguments():
 
     # クライアントモード
     client_parser = subparsers.add_parser("client", help="Client Mode")
-    client_parser.add_argument("--server", type=str, required=True, help="Remote IP (If you using Tor Network, Also can Use onion domain.)")
+    client_parser.add_argument("--server", type=str, required=True, help="Remote IP Address / Domain")
     client_parser.add_argument("--port", type=int, default=8443, help="Remote Port (Default: 8443)")
     client_parser.add_argument("--method", type=str, choices=["GET", "POST"], default="GET", help="Method (Default: GET)")
     client_parser.add_argument("--path", type=str, default="/", help="Request File Path (Default: /)")
