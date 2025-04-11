@@ -4,6 +4,12 @@
 # DGHTP  
 DiamondGotCat Hypertext Transfer Protocol
 
+## Infomation
+- Type: Protocol
+- Usage: Hypertext Transfer Protocol
+- Usage-Example: File Hosting, Web Site Hosting, etc.
+- URL-Scheme: `dghtp://`
+
 ## What is this?
 
 **DGHTP** is a next-generation communication protocol inspired by traditional HTTP/HTTPS,  
