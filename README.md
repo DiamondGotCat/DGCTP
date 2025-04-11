@@ -10,7 +10,29 @@ DiamondGotCat Hypertext Transfer Protocol
 - Type: Protocol
 - Usage: Hypertext Transfer Protocol
 - Usage-Example: File Hosting, Web Site Hosting, etc.
-- URL-Scheme: All: `dghtp://`, GET: `dghtp-get://`, POST: `dghtp-post://`, Encryption-Enabled: `dghtps://`, Alias: `dghttp://` `dghttp-get://` `dghttp-post://` `dghttps://`, Version Select: `dghtp-b-a://`
+
+
+## URL-Scheme
+
+### Syntax
+`{name}{is-always-encrypted ? "s" : ""}{is-selected-metdot-on-scheme ? "-" : ""}{selected-metdot}{is-selected-version-on-scheme ? "-" : ""}{selected-version}`
+
+**examples**
+- `dghtp-b-a://`
+- `dghtps-get://`
+- `dghttp-d-c://`
+- `dghttp-post-b-b://`
+
+**name**
+- `dghtp`
+- `dghttp`
+
+**selected-metdot**
+- `get`
+- `post`
+
+**selected-version**
+Please see `URL-Scheme's Version Syntax` Section.
 
 ### URL-Scheme's Version Syntax
 - `0`: `a`
