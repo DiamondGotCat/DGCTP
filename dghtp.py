@@ -255,7 +255,7 @@ class DGHTPClient:
         writer.close()
         await writer.wait_closed()
 
-        print(f"[Client] Received response: STATUS={status}, LENGTH={len(resp_body)} bytes")
+        print(f"[CLIE] Received response: STATUS={status}, LENGTH={len(resp_body)} bytes")
         return resp_body
 
 ##
@@ -278,17 +278,17 @@ class DGHTPServer:
     async def start_server(self):
         server = await asyncio.start_server(self.handle_client, self.host, self.port)
         addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
-        print(f"[Server] Listening on {addrs}")
+        print(f"[SERV] Listening on {addrs}")
         async with server:
             await server.serve_forever()
 
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         peername = writer.get_extra_info("peername")
-        print(f"[Server] Connection from {peername}")
+        print(f"[SERV] Connection from {peername}")
         try:
             req_header = await read_dghtp_header(reader)
         except Exception as e:
-            print(f"[Server] Header Receive Error: {e}")
+            print(f"[SERV] Header Receive Error: {e}")
             writer.close()
             await writer.wait_closed()
             return
@@ -304,7 +304,7 @@ class DGHTPServer:
 
         # サーバー側の暗号化設定と不一致があるとエラーにする（必須の場合）
         if self.encrypt and not req_encrypt:
-            print("[Server] Not Needed Encryption for This Server. Please Remove `--encrypt` Option.")
+            print("[SERV] Not Needed Encryption for This Server. Please Remove `--encrypt` Option.")
             writer.close()
             await writer.wait_closed()
             return
@@ -314,14 +314,14 @@ class DGHTPServer:
             if not self.post_enabled:
                 status = "405 Method Not Allowed"
                 resp_body = b"POST method not allowed on this server."
-                print(f"[Server] POST requested but not enabled.")
+                print(f"[SERV] POST requested but not enabled.")
             elif content_length > 0:
                 # POST の場合、docroot 内にアップロード先ファイルとして保存する例
                 body = await receive_body(reader, content_length, req_encrypt, req_compress, self.password)
                 upload_path = os.path.join(self.docroot, os.path.basename(path))
                 with open(upload_path, 'wb') as f:
                     f.write(body)
-                print(f"[Server] POST: Saved Data to {upload_path} ({len(body)} bytes)")
+                print(f"[SERV] POST: Saved Data to {upload_path} ({len(body)} bytes)")
                 resp_body = f"POST upload to {upload_path} saved. ({len(body)} bytes)".encode()
                 status = "200 OK"
             else:
@@ -331,22 +331,22 @@ class DGHTPServer:
             if not self.get_enabled:
                 status = "405 Method Not Allowed"
                 resp_body = b"GET method not allowed on this server."
-                print(f"[Server] GET requested but not enabled.")
+                print(f"[SERV] GET requested but not enabled.")
             else:
                 file_path = os.path.join(self.docroot, path.lstrip("/"))
                 if os.path.isfile(file_path):
                     with open(file_path, 'rb') as f:
                         resp_body = f.read()
                     status = "200 OK"
-                    print(f"[Server] GET: Sending {file_path} ({len(resp_body)} bytes)")
+                    print(f"[SERV] GET: Sending {file_path} ({len(resp_body)} bytes)")
                 else:
                     status = "404 Not Found"
                     resp_body = b"404 Not Found"
-                    print(f"[Server] GET: {file_path} is Not Found.")
+                    print(f"[SERV] GET: {file_path} is Not Found.")
         else:
             status = "405 Method Not Allowed"
             resp_body = b"Method not allowed"
-            print(f"[Server] Method {method} is Not Supported")
+            print(f"[SERV] Method {method} is Not Supported")
 
         # レスポンスヘッダー作成
         resp_metadata = {
@@ -366,7 +366,7 @@ class DGHTPServer:
 
         writer.close()
         await writer.wait_closed()
-        print(f"[Server] Sent Response to {peername}")
+        print(f"[SERV] Sent Response to {peername}")
 
 ##
 ## コマンドライン引数のパースとメイン処理
@@ -461,9 +461,9 @@ async def main():
             if args.output:
                 with open(args.output, 'wb') as f:
                     f.write(resp_body)
-                print(f"[Client] Response saved to {args.output}")
+                print(f"[CLIE] Response saved to {args.output}")
             else:
-                print("[Client] Response:")
+                print("[CLIE] Response:")
                 try:
                     print(resp_body.decode())
                 except Exception:
