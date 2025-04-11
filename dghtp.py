@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 DGHTP - DiamondGotCat Hypertext Transfer Protocol
-このプロトコルは、UltraDP の設計を応用し、セキュアな HTTP 代替としてリクエスト／レスポンス処理を実現する実験的プロトコルです。
+このプロトコルは、UltraDP の設計を応用し、セキュアな HTTP 代替としてリクエスト／レスポンス処理を実現するプロトコルです。
 
 【プロトコル仕様】
 --- リクエストヘッダー ---
